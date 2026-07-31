@@ -45,7 +45,7 @@
 
 ```powershell
 git status --short --branch
-rg -n "TODO|FIXME|计划中|待办|下一步" .
+Get-ChildItem -LiteralPath . -Recurse -File | Select-String -Pattern "TODO|FIXME|计划中|待办|下一步"
 ```
 
 注意：
