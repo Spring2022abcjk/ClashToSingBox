@@ -1,34 +1,41 @@
 # ClashToSingBox
-PowerShell 模块 | Clash YAML → sing-box JSON 配置转换器
 
-轻量、规范输出、可扩展的代理配置转换工具。
+将 Clash YAML 中的 `proxies` 节点转换为 sing-box JSON `outbounds` 的 PowerShell 模块。
 
-## 核心特性
-- 纯 PowerShell 原生，无第三方依赖
-- 非入侵架构，核心逻辑与扩展功能分离
-- 输出干净：无空对象、无冗余字段、符合 sing-box 规范
-- 支持 VMess / Shadowsocks / Trojan / VLESS / AnyTLS 协议
-  - AnyTLS (sing-box `anytls` 出站)：支持 AnyTLS 专有字段，TLS 在 AnyTLS 上**默认启用**（YAML 中可省略 `tls` 字段）
-- 内置 TLS / Transport / Multiplex 统一共享结构
-- 外挂功能：一键导出节点名称列表
-- 通过项目级 PSScriptAnalyzer 静态检查和 Pester 测试，稳定可用
+当前版本：**1.0.0**
 
-## 参数说明
-- `-InputFile`
-  输入：Clash 格式 YAML 配置路径
+## 功能概览
 
-- `-OutputFile`
-  输出：sing-box 格式 JSON 配置路径
+- 支持 VMess、Shadowsocks、Trojan、VLESS 和 AnyTLS。
+- 统一处理 TLS、uTLS、REALITY 与 WebSocket transport。
+- 只输出有效字段，避免空对象和无意义默认字段。
+- 可按节点名称正则过滤。
+- 可额外导出节点 tag 列表。
+- 提供 Pester 单元测试、集成测试和项目级 PSScriptAnalyzer 配置。
 
-- `-ExportOutboundList`
-  开关：导出节点名称列表（outbounds 数组格式）
+## 运行要求
 
-- `-OutboundListOutputPath`
-  可选：自定义节点列表输出路径
+- PowerShell 7.0 或更高版本。
+- `powershell-yaml` 0.4.12 或更高版本，用于提供 `ConvertFrom-Yaml`。
 
-## 安装与导入
+安装依赖：
 
-### 开发目录中直接导入
+```powershell
+Install-Module -Name powershell-yaml -MinimumVersion 0.4.12 -Scope CurrentUser
+```
+
+确认环境：
+
+```powershell
+$PSVersionTable.PSVersion
+Get-Command ConvertFrom-Yaml
+```
+
+## 安装
+
+### 从源码导入
+
+克隆仓库并安装依赖后，在仓库根目录执行：
 
 ```powershell
 Import-Module .\ClashToSingBox.psd1 -Force
@@ -37,128 +44,175 @@ Get-Command -Module ClashToSingBox
 
 ### 安装到当前用户模块目录
 
-在发布到 PowerShell Gallery 或私有 PSResource 仓库前，可以先把本仓库作为本地模块安装使用：
-
 ```powershell
-$ModuleRoot = Join-Path $HOME "Documents\PowerShell\Modules\ClashToSingBox\0.1.0"
+$ModuleRoot = Join-Path $HOME "Documents\PowerShell\Modules\ClashToSingBox\1.0.0"
 New-Item -Path $ModuleRoot -ItemType Directory -Force
-Copy-Item -Path .\ClashToSingBox.psd1, .\ClashToSingBox.psm1, .\Classes, .\Private, .\Public -Destination $ModuleRoot -Recurse -Force
-Import-Module ClashToSingBox
+Copy-Item -Path .\ClashToSingBox.psd1, .\ClashToSingBox.psm1, .\Classes, .\Private, .\Public `
+    -Destination $ModuleRoot -Recurse -Force
+Import-Module ClashToSingBox -Force
 ```
 
-安装后即可在任意目录使用：
+> 当前仓库尚未声明已发布到 PowerShell Gallery。请不要把下面的命令当作当前可用的安装方式：
+> `Install-PSResource ClashToSingBox`
+
+## 快速开始
 
 ```powershell
-Convert-ProxyNodes -InputFile .\clash_config.yaml -OutputFile .\sing-box_config.json
+Import-Module .\ClashToSingBox.psd1 -Force
+
+$result = Convert-ProxyNodes `
+    -InputFile .\clash-config.yml `
+    -OutputFile .\outputs\outbounds.json
+
+$result
 ```
 
-### 未来发布后的预期用法
+成功时，`$result.Success` 为 `$true`，转换结果写入指定 JSON 文件。返回的 `ConversionResult` 还包含总数、成功数、失败数、过滤数、协议统计和错误信息。
 
-发布到 PowerShell Gallery 或私有 PSResource 仓库后，预期可以这样安装：
+按名称过滤节点：
 
 ```powershell
-Install-PSResource ClashToSingBox -Scope CurrentUser
-Import-Module ClashToSingBox
+Convert-ProxyNodes `
+    -InputFile .\clash-config.yml `
+    -OutputFile .\outputs\outbounds.json `
+    -Filter "到期|剩余流量|官网"
 ```
 
-## 输出示例
-```json
-{
-  "type": "shadowsocks",
-  "tag": "🇯🇵 日本W01",
-  "server": "xxx.xxx.xxx.xxx",
-  "server_port": 443,
-  "method": "aes-256-gcm",
-  "password": "your-password"
-}
-```
-
-## 仓库结构
-
-本项目当前按 PowerShell 模块的标准方式组织：
-
-- `ClashToSingBox.psm1`：模块入口
-- `Classes/`：共享类型定义
-- `Private/`：解析、校验、转换等内部实现
-- `Public/`：对外导出的命令
-- `tests/`：单元测试与集成测试
-- `test-inputs/`：测试输入样例
-- `test-outputs/`：测试基线输出
-- `outputs/`：手工运行生成的结果文件
-- `docs/PROJECT_STRUCTURE.md`：更详细的目录整理标准
-- `docs/GIT_BRANCH_WORKFLOW.md`：分支合并与清理流程
-
-当前源码分层、模块清单和集成测试已经落地。后续维护可优先处理 WebSocket early-data 预留字段、保持文档与实现同步，并持续区分测试基线、临时产物和个人输入。
-
-## 一、核心架构
- 
-- 基础公共字段： type / tag / server / server_port （全协议必选）
-- 共享能力层：
-    - TLS ：白名单控制，支持证书、uTLS、REALITY
-    - Transport ：白名单控制，支持 WS 等传输方式
-    - Multiplex ：第三套共享结构，预留扩展，当前不侵入输出
-- 协议私有层：VMess / Shadowsocks / Trojan / VLESS / AnyTLS 的专属字段分别维护
-- 输出规则：无值不输出、无空对象、无冗余默认字段
- 
-## 二、已支持协议
- 
-- VMess（部分支持 TLS + Transport）
-- Shadowsocks（基础出站字段）
-- Trojan（支持 TLS + Transport）
-- VLESS（支持 TLS + Transport，flow 当前仅支持 xtls-rprx-vision）
-- AnyTLS（支持 AnyTLS 出站配置）
-  - 特性：
-    - `password`：AnyTLS 连接密码（必填）
-    - `idle_session_check_interval` / `idle_session_timeout` / `min_idle_session`：会话闲置相关配置，已实现并映射到输出
-    - TLS 行为：在 AnyTLS 下 TLS 默认启用，代码会自动解析 `servername`、`fingerprint` 等 TLS 相关字段，即使 YAML 中未显式写 `tls: true`。
-
-## 三、工程化质量
- 
-1. 静态检查：使用仓库根目录的项目级 PSScriptAnalyzer 配置，检查结果为空
-2. 测试覆盖：基于 Pester，覆盖核心校验/转换逻辑和公开命令完整链路
-3. 代码规范：遵循项目约定，保持缩进、命名和稀疏输出规则一致
- 
-## 四、扩展功能
- 
-- 功能：提取所有节点 tag，生成指定格式的 outbounds 列表
-- 支持：
-    - 开关触发： -ExportOutboundList 
-    - 自定义输出路径： -OutboundListOutputPath 
-    - 特性：完全不侵入核心转换逻辑，可独立移除
- 
-## 五、快速使用示例
- 
-1. 基础转换（Clash → sing-box）
- 
-```powershell
-Convert-ProxyNodes -InputFile .\clash_config.yaml -OutputFile .\sing-box_config.json
-```
- 
-2. 转换 + 导出节点名称列表（默认路径）
- 
-```powershell
-Convert-ProxyNodes -InputFile .\clash_config.yaml -OutputFile .\sing-box_config.json -ExportOutboundList
-```
- 
-3. 转换 + 自定义节点列表导出路径
- 
-```powershell
-Convert-ProxyNodes -InputFile .\clash_config.yaml -OutputFile .\sing-box_config.json -ExportOutboundList -OutboundListOutputPath .\my_outbound_list.json
-```
-
-## 六、测试
-
-运行单元测试：
+转换并导出节点名称列表：
 
 ```powershell
-Invoke-Pester -Path .\tests\unit
+Convert-ProxyNodes `
+    -InputFile .\clash-config.yml `
+    -OutputFile .\outputs\outbounds.json `
+    -ExportOutboundList `
+    -OutboundListOutputPath .\outputs\outbound-list.json
 ```
 
-运行集成测试：
+## 完整输入示例
 
-```powershell
-Invoke-Pester -Path .\tests\integration
+以下示例覆盖当前支持的五种协议，所有地址和凭据均为测试占位值：
+
+```yaml
+proxies:
+  - name: example-vmess
+    type: vmess
+    server: vmess.example.com
+    port: 443
+    uuid: "11111111-1111-1111-1111-111111111111"
+    cipher: auto
+    tls: true
+    sni: vmess.example.com
+    network: ws
+    ws-opts:
+      path: /vmess
+      headers:
+        Host: edge.vmess.example.com
+
+  - name: example-shadowsocks
+    type: ss
+    server: ss.example.com
+    port: 8388
+    cipher: aes-256-gcm
+    password: "example-password"
+
+  - name: example-trojan
+    type: trojan
+    server: trojan.example.com
+    port: 443
+    password: "example-password"
+    tls: true
+    servername: trojan.example.com
+    network: ws
+    ws-opts:
+      path: /trojan
+      headers:
+        Host: edge.trojan.example.com
+
+  - name: example-vless
+    type: vless
+    server: vless.example.com
+    port: 443
+    uuid: "22222222-2222-2222-2222-222222222222"
+    flow: xtls-rprx-vision
+    tls: true
+    servername: vless.example.com
+    client-fingerprint: chrome
+
+  - name: example-anytls
+    type: anytls
+    server: anytls.example.com
+    port: 443
+    password: "example-password"
+    servername: anytls.example.com
+    skip-cert-verify: true
+    idle_session_check_interval: 60s
+    idle_session_timeout: 120s
+    min_idle_session: 2
 ```
+
+仓库中的 `test-inputs/integration-all-protocols.yml` 提供了可直接运行的同类测试输入。
+
+## 支持字段
+
+所有协议都要求：
+
+| Clash 字段 | sing-box 字段 | 说明 |
+| --- | --- | --- |
+| `type` | `type` | 支持 `vmess`、`ss`、`trojan`、`vless`、`anytls` |
+| `name` | `tag` | 节点名称，不能为空 |
+| `server` | `server` | 服务器地址，不能为空 |
+| `port` | `server_port` | 必须是 1–65535 的整数 |
+
+协议私有字段：
+
+| 协议 | 必填字段 | 可选或默认行为 |
+| --- | --- | --- |
+| VMess | `uuid` | `cipher` 默认 `auto`；`alterId` 默认 `0`；支持 TLS 和 WebSocket |
+| Shadowsocks | `cipher`、`password` | 输出 `method`、`password`；不输出 TLS 或 WebSocket |
+| Trojan | `password` | 支持 TLS 和 WebSocket |
+| VLESS | `uuid` | `flow` 仅接受 `xtls-rprx-vision`；支持 TLS 和 WebSocket |
+| AnyTLS | `password` | TLS 默认启用；会话空闲字段见下表 |
+
+TLS、uTLS 与 REALITY 字段：
+
+| 能力 | Clash 输入字段 |
+| --- | --- |
+| TLS | `tls`、`sni` / `servername`、`skip-cert-verify` |
+| uTLS | `utls`、`fingerprint` / `client-fingerprint` |
+| REALITY | `reality`、`reality-opts.public-key`、`reality-opts.short-id`，也支持顶层 `public-key`、`short-id` |
+| WebSocket | `network: ws`、`ws-opts.path`、`ws-opts.headers` |
+
+AnyTLS 字段：
+
+| Clash 输入字段 | 行为 |
+| --- | --- |
+| `idle_session_check_interval` | 默认输出 `30s` |
+| `idle_session_timeout` | 默认输出 `30s` |
+| `min_idle_session` | 大于 `0` 时输出；`0` 不输出 |
+
+## 暂不支持
+
+- VMess、Shadowsocks、Trojan、VLESS、AnyTLS 之外的 Clash 协议。
+- WebSocket 之外的 transport 类型。
+- WebSocket `max_early_data` 和 `early_data_header_name`。
+- Shadowsocks WebSocket transport。
+- TLS `alpn`、`min_version` 等尚未接入 Validator 的预留字段。
+- 从 Clash 输入解析 multiplex；当前类型和稀疏输出结构仅为后续扩展预留。
+- 将节点合并进完整 sing-box 配置；当前输出是 outbound 对象数组。
+- 转换 Clash 的 `proxy-groups`、`rules`、DNS 或其他顶层配置；只读取 `proxies`。
+
+## 参数
+
+| 参数 | 必需 | 说明 |
+| --- | --- | --- |
+| `-InputFile` | 是 | Clash YAML 输入路径 |
+| `-OutputFile` | 是 | sing-box outbound JSON 输出路径 |
+| `-Filter` | 否 | 节点名称的正则表达式数组；匹配节点会被排除 |
+| `-JsonDepth` | 否 | JSON 序列化深度，默认 `10` |
+| `-ExportOutboundList` | 否 | 同时导出节点 tag 列表 |
+| `-OutboundListOutputPath` | 否 | tag 列表输出路径，仅与 `-ExportOutboundList` 一起使用 |
+
+## 测试与静态检查
 
 运行全部测试：
 
@@ -166,29 +220,74 @@ Invoke-Pester -Path .\tests\integration
 Invoke-Pester -Path .\tests
 ```
 
+分别运行单元测试和集成测试：
+
+```powershell
+Invoke-Pester -Path .\tests\unit
+Invoke-Pester -Path .\tests\integration
+```
+
 运行项目静态检查：
 
 ```powershell
-Invoke-ScriptAnalyzer -Path . -Recurse
+Invoke-ScriptAnalyzer `
+    -Path . `
+    -Recurse `
+    -Settings .\PSScriptAnalyzerSettings.psd1
 ```
 
-仓库根目录的 `PSScriptAnalyzerSettings.psd1` 会被自动加载；静态检查结果应为空。
- 
-## 七、设计原则
- 
-- 共享逻辑抽离，避免重复
-- 结构统一（TLS / Transport / Multiplex 风格一致）
-- 输出干净、符合 sing-box 规范
-- 可扩展：新协议只加专属逻辑，共享层不动
- 
-## 八、当前状态
- 
-- ✅ 现有单元测试和集成测试全部通过
-- ✅ 转换稳定、输出无冗余
-- ✅ 项目级 PSScriptAnalyzer 静态检查通过
-- ✅ 可用于日常转换；生产使用前建议结合实际配置验证输出
-- ✅ 已新增模块清单 `ClashToSingBox.psd1`，支持标准模块导入与后续 PSResource 发布
-- ✅ 已支持 VLESS / Trojan / AnyTLS
+校验模块清单：
 
-## 九、许可证
-[MIT License](./LICENSE)
+```powershell
+Test-ModuleManifest -Path .\ClashToSingBox.psd1
+```
+
+开发和测试需要 Pester、PSScriptAnalyzer：
+
+```powershell
+Install-Module -Name Pester -Scope CurrentUser
+Install-Module -Name PSScriptAnalyzer -Scope CurrentUser
+```
+
+## 已知限制
+
+- 单个节点验证失败时不会终止整批转换；失败节点会被跳过，错误记录在返回结果中。
+- 只有至少一个节点转换成功时才写出输出文件。
+- 输出是 sing-box outbound 数组，不是完整的 sing-box 配置文件。
+- 默认输出以 UTF-8 无 BOM 编码写入。
+- `-Filter` 使用 PowerShell 正则表达式语义，特殊字符需要正确转义。
+- 项目测试覆盖当前实现路径，但不同 sing-box 版本或第三方 Clash 配置可能存在字段差异；实际使用前应检查生成结果。
+
+## 安全提醒
+
+- 不要向 Issue、Pull Request、日志或仓库提交真实订阅链接、代理节点、密码、UUID、Token 或 Authorization header。
+- 示例和测试必须使用不可用的占位域名及占位凭据。
+- 如果真实凭据曾进入 Git 历史，仅删除当前文件并不足够；应立即轮换凭据，并在公开前清理完整历史。
+- `myinputs/`、`outputs/` 和私有 provider fixture 已通过 `.gitignore` 排除，不应作为测试事实来源。
+
+## 当前版本状态
+
+版本 `1.0.0`：
+
+- 支持 VMess、Shadowsocks、Trojan、VLESS、AnyTLS 的核心转换链路。
+- 支持 TLS、uTLS、REALITY 和 VMess/Trojan/VLESS 的 WebSocket `path`、`headers`。
+- 支持 AnyTLS 默认 TLS 与会话空闲字段。
+- 具备公开命令完整链路集成测试和协议级单元测试。
+- 具备标准 PowerShell 模块清单和项目级 PSScriptAnalyzer 配置。
+- 尚未发布到 PowerShell Gallery。
+
+## 仓库结构
+
+- `Classes/`：共享配置类型和转换结果类型。
+- `Private/`：YAML 解析、共享校验、协议 Validator 和 Converter。
+- `Public/`：公开命令 `Convert-ProxyNodes`。
+- `tests/unit/`：单元测试。
+- `tests/integration/`：完整输入到输出链路测试。
+- `test-inputs/`：稳定测试输入。
+- `test-outputs/`：正式测试基线。
+- `outputs/`：本地临时输出，不纳入版本控制。
+- `docs/`：项目结构和维护文档。
+
+## 许可证
+
+[MIT License](./LICENSE) — Copyright (c) 2026 petaljoe_
