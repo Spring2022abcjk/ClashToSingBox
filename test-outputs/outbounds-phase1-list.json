@@ -1,0 +1,7 @@
+{
+  "outbounds": [
+    "test-vmess-01",
+    "test-ss-01",
+    "trojan-out"
+  ]
+}

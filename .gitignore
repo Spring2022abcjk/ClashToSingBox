@@ -1,0 +1,10 @@
+*outbounds.json
+!test-outputs/*outbounds.json
+*test.yml
+.tmp/
+myinputs
+outputs
+
+# Private provider fixtures that should stay local only
+test-inputs/tao-ikuuu.yml
+test-inputs/2-kittynodes.yaml

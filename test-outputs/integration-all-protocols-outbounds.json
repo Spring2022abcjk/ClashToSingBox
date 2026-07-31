@@ -1,0 +1,83 @@
+[
+  {
+    "type": "vmess",
+    "tag": "integration-vmess",
+    "server": "vmess.example.com",
+    "server_port": 443,
+    "tls": {
+      "enabled": true,
+      "server_name": "vmess.example.com"
+    },
+    "transport": {
+      "type": "ws",
+      "path": "/vmess",
+      "headers": {
+        "Host": "edge.vmess.example.com"
+      }
+    },
+    "uuid": "11111111-1111-1111-1111-111111111111",
+    "security": "auto",
+    "alter_id": 0,
+    "global_padding": false,
+    "authenticated_length": true
+  },
+  {
+    "type": "shadowsocks",
+    "tag": "integration-ss",
+    "server": "ss.example.com",
+    "server_port": 8388,
+    "method": "aes-256-gcm",
+    "password": "ss-password",
+    "udp_over_tcp": false
+  },
+  {
+    "type": "trojan",
+    "tag": "integration-trojan",
+    "server": "trojan.example.com",
+    "server_port": 443,
+    "tls": {
+      "enabled": true,
+      "server_name": "trojan.example.com"
+    },
+    "transport": {
+      "type": "ws",
+      "path": "/trojan",
+      "headers": {
+        "Host": "edge.trojan.example.com"
+      }
+    },
+    "password": "trojan-password"
+  },
+  {
+    "type": "vless",
+    "tag": "integration-vless",
+    "server": "vless.example.com",
+    "server_port": 443,
+    "tls": {
+      "enabled": true,
+      "server_name": "vless.example.com",
+      "utls": {
+        "enabled": true,
+        "fingerprint": "chrome"
+      }
+    },
+    "uuid": "22222222-2222-2222-2222-222222222222",
+    "flow": "xtls-rprx-vision",
+    "packet_encoding": ""
+  },
+  {
+    "type": "anytls",
+    "tag": "integration-anytls",
+    "server": "anytls.example.com",
+    "server_port": 443,
+    "tls": {
+      "enabled": true,
+      "server_name": "anytls.example.com",
+      "insecure": true
+    },
+    "password": "anytls-password",
+    "idle_session_check_interval": "60s",
+    "idle_session_timeout": "120s",
+    "min_idle_session": 2
+  }
+]
