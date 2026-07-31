@@ -1,5 +1,5 @@
 *outbounds.json
-!test-outputs/*outbounds.json
+!test-outputs/integration-all-protocols-outbounds.json
 *test.yml
 .tmp/
 myinputs
