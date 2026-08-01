@@ -95,6 +95,93 @@ jobs:
 
           Invoke-Pester -Configuration $configuration
 
+      - name: Run conversion smoke test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          if ([string]::IsNullOrWhiteSpace($env:RUNNER_TEMP)) {
+              throw 'RUNNER_TEMP is not available.'
+          }
+
+          $manifestPath = Join-Path $PWD 'ClashToSingBox.psd1'
+          $inputPath = Join-Path $PWD 'test-inputs/integration-all-protocols.yml'
+          $outputPath = Join-Path $env:RUNNER_TEMP 'ci3-outbounds.json'
+
+          Import-Module $manifestPath -Force
+          $result = Convert-ProxyNodes -InputFile $inputPath -OutputFile $outputPath
+
+          if (-not $result.Success) {
+              throw "Conversion failed: $($result.Errors -join '; ')"
+          }
+
+          if (
+              $result.SuccessCount -ne 5 -or
+              $result.FailedCount -ne 0 -or
+              $result.FilteredCount -ne 0
+          ) {
+              throw (
+                  'Unexpected conversion counts: ' +
+                  "success=$($result.SuccessCount), " +
+                  "failed=$($result.FailedCount), " +
+                  "filtered=$($result.FilteredCount)"
+              )
+          }
+
+          if (-not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
+              throw "Conversion did not create the output file: $outputPath"
+          }
+
+          $outbounds = @(
+              Get-Content -LiteralPath $outputPath -Raw -Encoding UTF8 |
+                  ConvertFrom-Json -ErrorAction Stop
+          )
+
+          if ($outbounds.Count -ne 5) {
+              throw "Expected 5 outbounds, found $($outbounds.Count)."
+          }
+
+          $requiredFields = @('type', 'tag', 'server', 'server_port')
+
+          foreach ($outbound in $outbounds) {
+              foreach ($field in $requiredFields) {
+                  if ($outbound.PSObject.Properties.Name -notcontains $field) {
+                      throw "Outbound is missing required field '$field'."
+                  }
+
+                  if ([string]::IsNullOrWhiteSpace([string]$outbound.$field)) {
+                      throw "Outbound field '$field' is empty."
+                  }
+              }
+
+              $serverPort = [int]$outbound.server_port
+              if ($serverPort -lt 1 -or $serverPort -gt 65535) {
+                  throw "Outbound has invalid server_port: $serverPort"
+              }
+          }
+
+      - name: Check repository cleanliness
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $gitArguments = @(
+              'status'
+              '--porcelain=v1'
+              '--untracked-files=all'
+          )
+          $workingTreeStatus = @(& git @gitArguments)
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "git status failed with exit code $LASTEXITCODE."
+          }
+
+          if ($workingTreeStatus.Count -gt 0) {
+              $workingTreeStatus | ForEach-Object { Write-Error $_ }
+              throw 'CI commands modified or created files in the repository.'
+          }
+
   static-analysis:
     name: Static analysis
     runs-on: ubuntu-latest
