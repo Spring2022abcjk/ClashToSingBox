@@ -67,6 +67,12 @@
 
 ## CI-2：Pull Request 质量门禁
 
+状态：已完成。Pull Request #2 的
+[成功运行 30687787140](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30687787140)
+已通过 Windows、Ubuntu 和静态检查；
+[运行 30687771090](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30687771090)
+验证了后续提交到达时旧运行会被取消。
+
 ### 目标
 
 为 Pull Request、`main` 推送和手工运行建立统一 CI。
@@ -87,6 +93,7 @@
   - 确认只导出预期公开命令 `Convert-ProxyNodes`。
   - `Invoke-Pester -Path ./tests`。
 - 在 Ubuntu 上执行一次 PSScriptAnalyzer，避免重复工作。
+- 精确安装模块运行时依赖 `powershell-yaml 0.4.12`，确保干净 Runner 可以验证并导入模块。
 - 固定 Pester 与 PSScriptAnalyzer 的版本范围，避免 Runner 预装版本漂移。
 - 设置最小权限：`contents: read`。
 - 为同一分支设置并发取消，停止已经过时的 CI 运行。
