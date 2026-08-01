@@ -249,6 +249,9 @@
 
 ## CI-4：仓库保护与维护自动化
 
+状态：已完成。当前配置、失败阻塞与修复后成功证据见
+[`REPOSITORY_PROTECTION.md`](./REPOSITORY_PROTECTION.md)。
+
 ### 目标
 
 让已建立的检查真正成为合并门禁，并降低 GitHub Actions 依赖维护成本。
