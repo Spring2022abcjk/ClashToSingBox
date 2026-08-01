@@ -116,6 +116,10 @@
 
 ## CI-3：真实转换烟雾测试与仓库污染检查
 
+状态：已完成。Pull Request #3 的
+[成功运行 30695181300](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30695181300)
+已在 Windows 和 Ubuntu 上通过真实转换、JSON 最低契约检查与仓库污染检查。
+
 ### 目标
 
 除 Pester 外，再以用户入口完成一次轻量验证，并确保验证过程不会污染仓库。
