@@ -89,6 +89,7 @@
   - 确认只导出预期公开命令 `Convert-ProxyNodes`。
   - `Invoke-Pester -Path ./tests`。
 - 在 Ubuntu 上执行一次 PSScriptAnalyzer，避免重复工作。
+- 精确安装模块运行时依赖 `powershell-yaml 0.4.12`，确保干净 Runner 可以验证并导入模块。
 - 固定 Pester 与 PSScriptAnalyzer 的版本范围，避免 Runner 预装版本漂移。
 - 设置最小权限：`contents: read`。
 - 为同一分支设置并发取消，停止已经过时的 CI 运行。
