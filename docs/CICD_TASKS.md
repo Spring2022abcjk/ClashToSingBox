@@ -36,20 +36,22 @@
 
 ## CI-1：静态检查规则基线
 
+状态：基线已完成；GitHub Runner 复用验证归入 CI-2。
+
 ### 目标
 
 建立仓库级 PSScriptAnalyzer 配置，让 CI 阻塞真正需要修复的问题，同时明确记录不适用于本项目的规则。
 
 ### 实施内容
 
-- 新增 `PSScriptAnalyzerSettings.psd1`。
-- 修正确定存在的行尾空格、输出类型或编码问题。
-- 对以下规则作出明确决定并记录理由：
+- 复核并固化仓库已有的 `PSScriptAnalyzerSettings.psd1`。
+- 修正确定存在的行尾空格、输出类型或编码问题；当前基线没有此类遗留发现。
+- 在 [`STATIC_ANALYSIS.md`](./STATIC_ANALYSIS.md) 中记录以下规则的明确决定和理由：
   - `PSUseSingularNouns` 对公开命令 `Convert-ProxyNodes` 的告警。
   - `PSUseShouldProcessForStateChangingFunctions` 对内部构造函数的告警。
   - `PSUseBOMForUnicodeEncodedFile` 的仓库编码策略。
-- CI 中至少将 Analyzer 的 Error 视为失败。
-- 对保留的 Warning 决定是阻塞还是仅报告，不依赖隐式默认行为。
+- 本地检查和后续 CI 均显式使用仓库配置。
+- Error、Warning 和 Information 均为阻塞结果，不依赖隐式默认行为。
 
 ### 边界
 
@@ -59,7 +61,7 @@
 
 ### 验收标准
 
-- 本地和 GitHub Runner 使用同一份 Analyzer 配置。
+- 本地使用仓库配置且结果为零；GitHub Runner 使用同一配置的验证由 CI-2 完成。
 - Analyzer 结果可重复，没有未解释的阻塞告警。
 - 规则排除项具有项目级理由，而不是临时隐藏缺陷。
 

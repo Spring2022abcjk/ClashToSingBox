@@ -1,4 +1,6 @@
 @{
+    # Repository policy: every diagnostic returned at these severities is
+    # blocking. Local checks and CI must use this settings file explicitly.
     Severity = @(
         'Error'
         'Warning'
