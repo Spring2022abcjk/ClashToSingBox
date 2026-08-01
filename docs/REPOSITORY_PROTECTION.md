@@ -36,3 +36,7 @@ Pull Request #6 的临时失败测试使 Windows 和 Ubuntu 必需检查失败�
 合并，验收过程没有使用管理员绕过。
 
 临时失败测试仅用于门禁探针，已在后续提交中删除，不进入 `main`。
+
+移除探针后，[运行 30700763879](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30700763879)
+的三项必需检查全部成功，Pull Request 合并状态恢复为 `CLEAN`，证明正常修复后
+可以在不使用管理员绕过的情况下继续合并。
