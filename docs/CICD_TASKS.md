@@ -67,6 +67,8 @@
 
 ## CI-2：Pull Request 质量门禁
 
+状态：已实施，正在通过 Pull Request #2 完成 GitHub Runner 验收。
+
 ### 目标
 
 为 Pull Request、`main` 推送和手工运行建立统一 CI。
