@@ -236,6 +236,10 @@ Invoke-ScriptAnalyzer `
     -Settings .\PSScriptAnalyzerSettings.psd1
 ```
 
+静态检查规则、排除项理由和阻塞策略见
+[`docs/STATIC_ANALYSIS.md`](./docs/STATIC_ANALYSIS.md)。本项目把配置返回的
+Error、Warning 和 Information 全部视为需要处理的阻塞结果。
+
 校验模块清单：
 
 ```powershell
