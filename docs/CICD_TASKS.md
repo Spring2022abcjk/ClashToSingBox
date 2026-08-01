@@ -67,7 +67,11 @@
 
 ## CI-2：Pull Request 质量门禁
 
-状态：已实施，正在通过 Pull Request #2 完成 GitHub Runner 验收。
+状态：已完成。Pull Request #2 的
+[成功运行 30687787140](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30687787140)
+已通过 Windows、Ubuntu 和静态检查；
+[运行 30687771090](https://github.com/Spring2022abcjk/ClashToSingBox/actions/runs/30687771090)
+验证了后续提交到达时旧运行会被取消。
 
 ### 目标
 
