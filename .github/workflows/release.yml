@@ -111,7 +111,6 @@ jobs:
               throw 'SHA256 file does not match the package.'
           }
 
-          Copy-Item -LiteralPath $packagePath, $checksumPath -Destination $packageRoot -Force
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "artifact-name=ClashToSingBox-$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
