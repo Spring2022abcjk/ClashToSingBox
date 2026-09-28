@@ -112,7 +112,7 @@ TLS：
 Transport：
 
 - WebSocket transport 只适用于 VMess、Trojan、VLESS；不要为 Shadowsocks 输出 WebSocket transport。
-- `WsTransportConfig` 里 `max_early_data` / `early_data_header_name` 仍是预留项；实现时要同时补 Validator、Converter 和测试。
+- `WsTransportConfig` 支持 `max_early_data` / `early_data_header_name`；Validator、Converter 和测试需保持三者映射一致。
 
 Multiplex：
 
@@ -212,5 +212,5 @@ Converter 的核心原则：
 
 1. 修正 README 中失效的文档引用和过期状态。
 2. 为完整输入到输出链路补 `tests/integration/`。
-3. 实现或删除 WebSocket `max_early_data` / `early_data_header_name` 预留注释。
+3. 持续验证 WebSocket `max_early_data` / `early_data_header_name` 的字段映射和边界行为。
 4. 明确 `myinputs/` 与 `outputs/` 是否进入版本管理。
