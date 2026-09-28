@@ -103,8 +103,10 @@ function New-SharedTransportConfig {
     $transport = [PSCustomObject]@{
         type = $null
         ws   = [PSCustomObject]@{
-            path    = $null
-            headers = @{}
+            path                   = $null
+            headers                = @{}
+            max_early_data         = 0
+            early_data_header_name = $null
         }
     }
     if ($ProxyData.network -eq "ws" -and $ProxyData."ws-opts") {
@@ -112,9 +114,45 @@ function New-SharedTransportConfig {
         $transport.type = "ws"
         $transport.ws.path = $wsOpts.path ?? "/"
         $transport.ws.headers = $wsOpts.headers ?? @{}
+        if ($wsOpts.ContainsKey('max-early-data')) {
+            $maxEarlyData = 0
+            if (-not [int]::TryParse([string]$wsOpts['max-early-data'], [ref]$maxEarlyData) -or $maxEarlyData -lt 0) {
+                $transport.ws.max_early_data = -1
+            }
+            else {
+                $transport.ws.max_early_data = $maxEarlyData
+            }
+        }
+        if ($wsOpts.ContainsKey('early-data-header-name')) {
+            $transport.ws.early_data_header_name = [string]$wsOpts['early-data-header-name']
+        }
     }
 
     return $transport
+}
+
+function Get-WebSocketTransportValidationErrors {
+    [CmdletBinding()]
+    [OutputType([object[]])]
+    param (
+        [Parameter(Mandatory)]
+        [hashtable]$ProxyData
+    )
+
+    $errors = @()
+    if ($ProxyData.network -ne 'ws' -or -not $ProxyData.'ws-opts') {
+        return $errors
+    }
+
+    $wsOpts = $ProxyData.'ws-opts'
+    if ($wsOpts.ContainsKey('max-early-data')) {
+        $maxEarlyData = 0
+        if (-not [int]::TryParse([string]$wsOpts['max-early-data'], [ref]$maxEarlyData) -or $maxEarlyData -lt 0) {
+            $errors += 'ws-opts.max-early-data 必须是大于等于 0 的整数'
+        }
+    }
+
+    return $errors
 }
 
 function Test-RequiredFieldsAndNonEmpty {

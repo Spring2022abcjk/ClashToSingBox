@@ -157,6 +157,54 @@ Describe "Converter 单元测试" {
         $outbound.multiplex.min_streams | Should -Be 4
     }
 
+    It "【WebSocket early-data】应稀疏输出 early-data 字段" {
+        $transport = [TransportConfig]::new()
+        $transport.type = 'ws'
+        $transport.ws.path = '/early'
+        $transport.ws.max_early_data = 2048
+        $transport.ws.early_data_header_name = 'Sec-WebSocket-Protocol'
+
+        $node = [PSCustomObject]@{
+            Protocol   = 'vmess'
+            Tag        = 'vmess-early-data'
+            Server     = '5.5.5.5'
+            ServerPort = 443
+            Uuid       = '33333333-3333-3333-3333-333333333333'
+            Security   = 'auto'
+            AlterId    = 0
+            Tls        = [TlsConfig]::new()
+            Transport  = $transport
+            Multiplex  = [MultiplexConfig]::new()
+        }
+
+        $outbound = $node | Invoke-Converter
+
+        $outbound.transport.max_early_data | Should -Be 2048
+        $outbound.transport.early_data_header_name | Should -Be 'Sec-WebSocket-Protocol'
+    }
+
+    It "【WebSocket early-data】默认值不应输出" {
+        $transport = [TransportConfig]::new()
+        $transport.type = 'ws'
+        $transport.ws.path = '/default'
+
+        $node = [PSCustomObject]@{
+            Protocol   = 'vless'
+            Tag        = 'vless-default-early-data'
+            Server     = '6.6.6.6'
+            ServerPort = 443
+            Uuid       = '44444444-4444-4444-4444-444444444444'
+            Tls        = [TlsConfig]::new()
+            Transport  = $transport
+            Multiplex  = [MultiplexConfig]::new()
+        }
+
+        $outbound = $node | Invoke-Converter
+
+        $outbound.transport.Contains('max_early_data') | Should -BeFalse
+        $outbound.transport.Contains('early_data_header_name') | Should -BeFalse
+    }
+
     It "【AnyTLS】应输出协议必填字段和独有字段" {
         $anyTls = [AnyTlsConfig]::new()
         $anyTls.idle_session_check_interval = "60s"

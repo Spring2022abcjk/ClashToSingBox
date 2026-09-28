@@ -87,6 +87,57 @@ Describe "Validator 共享逻辑一致性测试" {
         $vmess.Node.Transport.ws.headers.Host | Should -Be $trojan.Node.Transport.ws.headers.Host
     }
 
+    It "【WS early-data】VMess、Trojan 与 VLESS 应共享解析结果" {
+        $sharedWsInput = @{
+            name      = 'node-early-data'
+            server    = 'ws.example.com'
+            port      = '8443'
+            network   = 'ws'
+            'ws-opts' = @{
+                path                    = '/chat'
+                'max-early-data'        = 2048
+                'early-data-header-name' = 'Sec-WebSocket-Protocol'
+            }
+        }
+
+        $vmessData = $sharedWsInput.Clone()
+        $vmessData.uuid = '11111111-1111-1111-1111-111111111111'
+        $trojanData = $sharedWsInput.Clone()
+        $trojanData.password = 'secret'
+        $vlessData = $sharedWsInput.Clone()
+        $vlessData.uuid = '22222222-2222-2222-2222-222222222222'
+
+        $results = @(
+            Invoke-VmessValidator -ProxyData $vmessData
+            Invoke-TrojanValidator -ProxyData $trojanData
+            Invoke-VlessValidator -ProxyData $vlessData
+        )
+
+        $results.IsValid | Should -Be @( $true, $true, $true )
+        foreach ($result in $results) {
+            $result.Node.Transport.ws.max_early_data | Should -Be 2048
+            $result.Node.Transport.ws.early_data_header_name | Should -Be 'Sec-WebSocket-Protocol'
+        }
+    }
+
+    It "【WS early-data】非法 max-early-data 应拒绝节点" {
+        foreach ($invalidValue in @('-1', '1.5', 'not-a-number')) {
+            $proxyData = @{
+                name      = 'invalid-early-data'
+                server    = 'ws.example.com'
+                port      = '443'
+                uuid      = '11111111-1111-1111-1111-111111111111'
+                network   = 'ws'
+                'ws-opts' = @{ 'max-early-data' = $invalidValue }
+            }
+
+            $result = Invoke-VmessValidator -ProxyData $proxyData
+
+            $result.IsValid | Should -BeFalse
+            $result.Errors | Should -Contain 'ws-opts.max-early-data 必须是大于等于 0 的整数'
+        }
+    }
+
     It "【TLS默认】未启用 TLS 时两协议行为一致" {
         $vmessData = @{
             name   = 'vmess-no-tls'

@@ -62,7 +62,12 @@ function Invoke-Converter {
             if ($Node.Transport.ws.headers -and $Node.Transport.ws.headers.Count -gt 0) {
                 $transportOut.headers = $Node.Transport.ws.headers
             }
-            # 计划中：max_early_data / early_data_header_name
+            if ($Node.Transport.ws.max_early_data -gt 0) {
+                $transportOut.max_early_data = $Node.Transport.ws.max_early_data
+            }
+            if (-not [string]::IsNullOrWhiteSpace($Node.Transport.ws.early_data_header_name)) {
+                $transportOut.early_data_header_name = $Node.Transport.ws.early_data_header_name
+            }
             $outbound.transport = $transportOut
         }
         # ======================

@@ -22,10 +22,13 @@
  class WsTransportConfig {
      [string]$path = $null
      [hashtable]$headers = @{}
-     # 计划中：max_early_data
-     # 计划中：early_data_header_name
+     [int]$max_early_data = 0
+     [string]$early_data_header_name = $null
      [bool] IsEmpty() {
-         return [string]::IsNullOrEmpty($this.path) -and $this.headers.Count -eq 0
+         return [string]::IsNullOrEmpty($this.path) -and
+             $this.headers.Count -eq 0 -and
+             $this.max_early_data -eq 0 -and
+             [string]::IsNullOrEmpty($this.early_data_header_name)
      }
  }
 

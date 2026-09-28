@@ -10,6 +10,7 @@ function Invoke-VlessValidator {
     )
 
     $ErrorMessages = @()
+    $ErrorMessages += Get-WebSocketTransportValidationErrors -ProxyData $ProxyData
 
     # 1. 名称过滤
     if (Test-ProxyNameFiltered -ProxyData $ProxyData -Filter $Filter) {

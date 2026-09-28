@@ -180,7 +180,7 @@ TLS、uTLS 与 REALITY 字段：
 | TLS | `tls`、`sni` / `servername`、`skip-cert-verify` |
 | uTLS | `utls`、`fingerprint` / `client-fingerprint` |
 | REALITY | `reality`、`reality-opts.public-key`、`reality-opts.short-id`，也支持顶层 `public-key`、`short-id` |
-| WebSocket | `network: ws`、`ws-opts.path`、`ws-opts.headers` |
+| WebSocket | `network: ws`、`ws-opts.path`、`ws-opts.headers`、`ws-opts.max-early-data`、`ws-opts.early-data-header-name` |
 
 AnyTLS 字段：
 
@@ -194,7 +194,7 @@ AnyTLS 字段：
 
 - VMess、Shadowsocks、Trojan、VLESS、AnyTLS 之外的 Clash 协议。
 - WebSocket 之外的 transport 类型。
-- WebSocket `max_early_data` 和 `early_data_header_name`。
+- WebSocket early-data 仅支持 VMess、Trojan、VLESS；`max-early-data` 必须是大于等于 0 的整数，0 不输出。
 - Shadowsocks WebSocket transport。
 - TLS `alpn`、`min_version` 等尚未接入 Validator 的预留字段。
 - 从 Clash 输入解析 multiplex；当前类型和稀疏输出结构仅为后续扩展预留。
