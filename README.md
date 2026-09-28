@@ -55,6 +55,24 @@ Import-Module ClashToSingBox -Force
 > 当前仓库尚未声明已发布到 PowerShell Gallery。请不要把下面的命令当作当前可用的安装方式：
 > `Install-PSResource ClashToSingBox`
 
+### 从 GitHub Release 安装
+
+Release 压缩包只包含模块运行时文件，不包含 `powershell-yaml` 依赖。下载并解压
+`ClashToSingBox-<version>.zip` 后，将其中的 `ClashToSingBox` 目录放到当前用户模块目录，
+再导入模块：
+
+```powershell
+Install-Module -Name powershell-yaml -RequiredVersion 0.4.12 -Scope CurrentUser
+
+$ModuleRoot = Join-Path $HOME "Documents\PowerShell\Modules\ClashToSingBox\1.0.0"
+New-Item -Path $ModuleRoot -ItemType Directory -Force
+Copy-Item -Path .\ClashToSingBox\* -Destination $ModuleRoot -Recurse -Force
+Import-Module ClashToSingBox -Force
+```
+
+Release 同时提供 `.sha256` 校验文件。正式标签使用 `vMAJOR.MINOR.PATCH` 格式，
+并且必须与模块清单中的 `ModuleVersion` 一致。
+
 ## 快速开始
 
 ```powershell
