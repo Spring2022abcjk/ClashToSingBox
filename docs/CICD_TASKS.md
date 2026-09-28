@@ -1,6 +1,6 @@
 # GitHub CI/CD 流水线任务拆分
 
-本文档拆分 ClashToSingBox 的 GitHub CI/CD 建设任务。当前只记录计划，不表示任何工作流已经创建、运行或验收。
+本文档拆分 ClashToSingBox 的 GitHub CI/CD 建设任务。状态说明会区分“已创建”和“已通过真实运行验收”。
 
 总览入口：[ClashToSingBox 项目路线图](./PROJECT_ROADMAP.md)
 
@@ -152,6 +152,8 @@
 
 以 `vX.Y.Z` 标签生成与模块清单一致、内容最小化的安装包。
 
+状态：已完成。`v1.0.0` 已通过标签运行验收，生成最小模块包和 SHA256 资产。
+
 ### 触发条件
 
 - 推送符合 `v*` 的版本标签。
@@ -192,6 +194,8 @@
 ### 目标
 
 在 CD-1 全部通过后创建 GitHub Release，并附加经过验证的安装包与摘要。
+
+状态：已完成。`v1.0.0` Release 已创建，资产来自已验证 artifact。
 
 ### 实施内容
 
@@ -296,8 +300,8 @@
 2. CI-2：建立 Windows 和 Ubuntu 的基础 CI。
 3. CI-3：补真实公开命令烟雾测试和污染检查。
 4. CI-4：CI 稳定后再启用合并保护和 Dependabot。
-5. CD-1：建立版本一致性和干净打包。
-6. CD-2：创建 GitHub Release。
+5. CD-1：完成版本一致性和干净打包，并通过标签运行验收。
+6. CD-2：完成 GitHub Release 创建，并确认资产与 artifact 一致。
 7. CD-3：根据分发需求决定是否发布到 PowerShell Gallery。
 
 ## 完成定义
